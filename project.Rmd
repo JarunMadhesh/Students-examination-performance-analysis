@@ -1,0 +1,824 @@
+---
+title: "Student marks analysis"
+author: "Jarun ~ Mohana ~ Aravind"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+
+
+Importing all the datasets
+```{r}
+library(tidyverse) # metapackage with lots of helpful functions
+library(dplyr)
+#install.packages("reshape2")
+library(reshape2)
+```
+
+Importing the dataset
+```{r}
+
+data = read.csv("studentdata.csv")
+str(data)
+
+```
+
+```{r}
+print(unique(data$gender))
+print(unique(data$race.ethnicity))
+print(unique(data$parental.level.of.education))
+print(unique(data$lunch))
+print(unique(data$test.preparation.course))
+```
+
+
+```{r}
+head(data)
+```
+
+
+General Description
+
+Affectors:
+1) Gender
+2) Race ethnicity
+3) Parental level of education
+4) Lunch
+5) Test preparation course
+
+Marks:
+1) Math score
+2) Reading score
+3) Writing score
+
+
+
+# Analysis on Race ethinicity over students' marks
+
+
+```{r}
+data %>%
+    group_by(race.ethnicity) %>%
+    summarise(mathMean = mean(math.score),readingMean =  mean(reading.score),writingMean = mean(writing.score)) %>% 
+  melt(id.vars="race.ethnicity", variable.name = "Marks") %>% 
+  ggplot(aes(x=Marks, y=value, fill=race.ethnicity)) +
+  geom_bar(stat="identity", position = position_dodge())
+
+```
+
+
+#### Result
+In general there are no large difference at all. Maybe group E is slighty better than others 
+but generally, all the groups are fine in the total pool.
+
+
+
+```{r}
+
+mathpass = data %>% 
+  group_by(race.ethnicity) %>% 
+  filter(math.score>40) %>% 
+  count(race.ethnicity)
+
+writingpass = data %>% 
+  group_by(race.ethnicity) %>% 
+  filter(writing.score>40) %>% 
+  count(race.ethnicity)
+
+readingpass = data %>% 
+  group_by(race.ethnicity) %>% 
+  filter(reading.score>40) %>% 
+  count(race.ethnicity)
+
+total = data %>% 
+  group_by(race.ethnicity) %>% 
+  count(race.ethnicity)
+
+total$mathPassPercent = mathpass$n / total$n * 100
+total$readingPassPercent = readingpass$n / total$n * 100
+total$writingPassPercent = writingpass$n / total$n * 100
+
+total = subset(total, select = -c(n))
+
+melt(total, id.vars="race.ethnicity", variable.name = "passPercent") %>% 
+  ggplot(aes(x=passPercent, y=value, fill=race.ethnicity)) +
+  geom_bar(stat="identity", position = position_dodge())
+
+```
+
+#### Result
+In general there are no large difference at all. All the groups have
+good pass percentage.
+
+
+```{r}
+math = data %>% 
+  group_by(race.ethnicity) %>% 
+  filter(math.score>80) %>% 
+  count(race.ethnicity)
+
+writing = data %>% 
+  group_by(race.ethnicity) %>% 
+  filter(writing.score>80) %>% 
+  count(race.ethnicity)
+
+reading = data %>% 
+  group_by(race.ethnicity) %>% 
+  filter(reading.score>80) %>% 
+  count(race.ethnicity)
+
+total = data %>% 
+  group_by(race.ethnicity) %>% 
+  count(race.ethnicity)
+
+total$mathAPercent = math$n / total$n * 100
+total$readingAPercent = reading$n / total$n * 100
+total$writingAPercent = writing$n / total$n * 100
+
+total = subset(total, select = -c(n))
+
+melt(total, id.vars="race.ethnicity", variable.name = "GoodMarkPercent") %>% 
+  ggplot(aes(x=GoodMarkPercent, y=value, fill=race.ethnicity)) +
+  geom_bar(stat="identity", position = position_dodge())
+```
+
+#### Result
+We see a huge difference here. A large chunk of students of Group E are 
+talented in math and reading. 
+
+
+```{r}
+
+df = data %>% 
+  filter(race.ethnicity == "group E") %>% 
+  select(race.ethnicity, math.score, writing.score, reading.score)  
+
+hist(x= df$math.score, main = "Histogram of math scores of Group E")
+
+```
+
+```{r}
+df = data %>% 
+  filter(race.ethnicity == "group A") %>% 
+  select(race.ethnicity, math.score, writing.score, reading.score)  
+
+hist(x= df$math.score, main = "Histogram of math scores of Group A")
+
+```
+
+
+#### Result
+Group A is not doing good with math.
+
+
+
+## Gender
+
+```{r}
+data %>%
+    group_by(gender) %>%
+    summarise(mathMean = mean(math.score),readingMean =  mean(reading.score),writingMean = mean(writing.score)) %>% 
+  melt(id.vars="gender", variable.name = "Marks") %>% 
+  ggplot(aes(x=Marks, y=value, fill=gender)) +
+  geom_bar(stat="identity", position = position_dodge())
+```
+
+#### Result
+In general there are no large difference found.
+
+
+```{r}
+
+mathpass = data %>% 
+  group_by(gender) %>% 
+  filter(math.score>40) %>% 
+  count(gender)
+
+writingpass = data %>% 
+  group_by(gender) %>% 
+  filter(writing.score>40) %>% 
+  count(gender)
+
+readingpass = data %>% 
+  group_by(gender) %>% 
+  filter(reading.score>40) %>% 
+  count(gender)
+
+total = data %>% 
+  group_by(gender) %>% 
+  count(gender)
+
+total$mathPassPercent = mathpass$n / total$n * 100
+total$readingPassPercent = readingpass$n / total$n * 100
+total$writingPassPercent = writingpass$n / total$n * 100
+
+total = subset(total, select = -c(n))
+
+melt(total, id.vars="gender", variable.name = "passPercent") %>% 
+  ggplot(aes(x=passPercent, y=value, fill=gender)) +
+  geom_bar(stat="identity", position = position_dodge())
+
+```
+
+#### Result
+Both boys and girls have good pass percentage over all the subjects.
+Boys have a little edge over math and girls have it over reading and writing.
+
+
+```{r}
+
+math = data %>% 
+  group_by(gender) %>% 
+  filter(math.score>80) %>% 
+  count(gender)
+
+writing = data %>% 
+  group_by(gender) %>% 
+  filter(writing.score>80) %>% 
+  count(gender)
+
+reading = data %>% 
+  group_by(gender) %>% 
+  filter(reading.score>80) %>% 
+  count(gender)
+
+total = data %>% 
+  group_by(gender) %>% 
+  count(gender)
+
+total$mathAPercent = math$n / total$n * 100
+total$readingAPercent = reading$n / total$n * 100
+total$writingAPercent = writing$n / total$n * 100
+
+total = subset(total, select = -c(n))
+
+melt(total, id.vars="gender", variable.name = "GoodMarkPercent") %>% 
+  ggplot(aes(x=GoodMarkPercent, y=value, fill=gender)) +
+  geom_bar(stat="identity", position = position_dodge())
+
+```
+
+#### Result
+Adding to the inference we got in the last plot, we find boys perform well in math
+and girls perform well in reading and writing.
+
+
+
+Number of students who has scored above 80 in all subjects
+grouped by gender.
+
+```{r}
+
+data %>% 
+    group_by(gender) %>%
+    select(math.score,reading.score,writing.score) %>%
+    filter(math.score > 80, reading.score > 80, writing.score > 80) %>% 
+    count(gender) %>% 
+    ggplot(data = ., aes(x = gender, y = n, 
+    fill = gender)) + geom_bar(stat = "identity")
+
+```
+#### Result
+Overall, Female students are more studious than male students.
+
+
+## Level of Education Differences
+
+```{r}
+data %>%
+    group_by(parental.level.of.education) %>%
+    summarise(mathMean = mean(math.score),readingMean =  mean(reading.score),writingMean = mean(writing.score)) %>% 
+  melt(id.vars="parental.level.of.education", variable.name = "Marks") %>% 
+  ggplot(aes(x=Marks, y=value, fill=parental.level.of.education)) +
+  geom_bar(stat="identity", position = position_dodge())
+```
+
+```{r}
+
+mathpass = data %>% 
+  group_by(parental.level.of.education) %>% 
+  filter(math.score>40) %>% 
+  count(parental.level.of.education)
+
+writingpass = data %>% 
+  group_by(parental.level.of.education) %>% 
+  filter(writing.score>40) %>% 
+  count(parental.level.of.education)
+
+readingpass = data %>% 
+  group_by(parental.level.of.education) %>% 
+  filter(reading.score>40) %>% 
+  count(parental.level.of.education)
+
+total = data %>% 
+  group_by(parental.level.of.education) %>% 
+  count(parental.level.of.education)
+
+total$mathPassPercent = mathpass$n / total$n * 100
+total$readingPassPercent = readingpass$n / total$n * 100
+total$writingPassPercent = writingpass$n / total$n * 100
+
+total = subset(total, select = -c(n))
+
+melt(total, id.vars="parental.level.of.education", variable.name = "passPercent") %>% 
+  ggplot(aes(x=passPercent, y=value, fill=parental.level.of.education)) +
+  geom_bar(stat="identity", position = position_dodge())
+
+```
+
+
+```{r}
+
+math = data %>% 
+  group_by(parental.level.of.education) %>% 
+  filter(math.score>80) %>% 
+  count(parental.level.of.education)
+
+writing = data %>% 
+  group_by(parental.level.of.education) %>% 
+  filter(writing.score>80) %>% 
+  count(parental.level.of.education)
+
+reading = data %>% 
+  group_by(parental.level.of.education) %>% 
+  filter(reading.score>80) %>% 
+  count(parental.level.of.education)
+
+total = data %>% 
+  group_by(parental.level.of.education) %>% 
+  count(parental.level.of.education)
+
+total$mathAPercent = math$n / total$n * 100
+total$readingAPercent = reading$n / total$n * 100
+total$writingAPercent = writing$n / total$n * 100
+
+total = subset(total, select = -c(n))
+
+melt(total, id.vars="parental.level.of.education", variable.name = "GoodMarkPercent") %>% 
+  ggplot(aes(x=GoodMarkPercent, y=value, fill=parental.level.of.education)) +
+  geom_bar(stat="identity", position = position_dodge())
+
+```
+
+
+
+```{r}
+
+data %>% 
+    group_by(parental.level.of.education) %>%
+    select(math.score,reading.score,writing.score) %>%
+    filter(math.score > 80, reading.score > 80, writing.score > 80) %>% 
+    count(parental.level.of.education) %>% 
+    ggplot(data = ., aes(x = parental.level.of.education, y = n, 
+    fill = parental.level.of.education)) + geom_bar(stat = "identity")
+
+```
+
+Result
+Generally, the results are the same. Therefore, the scores does not changes with educational level. 
+
+
+
+
+## Test Preperation Course Effect on Scores
+
+
+```{r}
+data %>% 
+    group_by(test.preparation.course) %>%
+    summarise(mathMean = mean(math.score),readingMean =  mean(reading.score),writingMean = mean(writing.score)) %>%
+    mutate(totalScores = mathMean + readingMean + writingMean) %>%
+    ggplot(data = ., aes(x = test.preparation.course, y = totalScores, 
+    fill = test.preparation.course)) + geom_bar(stat = "identity") + 
+    labs(title="Test Preparation Comparison",
+    subtitle="Total Scores") +
+    theme(axis.text.x = element_text(angle=65, vjust=0.6))
+```
+
+Result
+Total scores of competeled ones is higher than who had not taken the preparation course.
+
+
+## Analyzing Lunch effects on Scores
+
+```{r}
+totalLunch <- table(data$lunch)
+totalLunch
+```
+```{r}
+lunch <- data %>% 
+    group_by(lunch) %>%
+    summarise(mathTotal = sum(math.score),readingTotal =  sum(reading.score),writingTotal = sum(writing.score)) %>%
+    mutate(totalScores = mathTotal + readingTotal + writingTotal) 
+lunch %>%
+    ggplot(data = ., aes(x = lunch, y = totalScores, 
+    fill = lunch)) + geom_bar(stat = "identity") + 
+    labs(title="Lunch Comparison",
+    subtitle="Total Scores") +
+    theme(axis.text.x = element_text(angle=65, vjust=0.6))
+```
+
+```{r}
+
+
+mathpass = data %>% 
+  group_by(lunch) %>% 
+  filter(math.score>40) %>% 
+  count(lunch)
+
+writingpass = data %>% 
+  group_by(lunch) %>% 
+  filter(writing.score>40) %>% 
+  count(lunch)
+
+readingpass = data %>% 
+  group_by(lunch) %>% 
+  filter(reading.score>40) %>% 
+  count(lunch)
+
+total = data %>% 
+  group_by(lunch) %>% 
+  count(lunch)
+
+total$mathPassPercent = mathpass$n / total$n * 100
+total$readingPassPercent = readingpass$n / total$n * 100
+total$writingPassPercent = writingpass$n / total$n * 100
+
+total = subset(total, select = -c(n))
+
+melt(total, id.vars="lunch", variable.name = "passPercent") %>% 
+  ggplot(aes(x=passPercent, y=value, fill=lunch)) +
+  geom_bar(stat="identity", position = position_dodge())
+```
+
+```{r}
+
+math = data %>% 
+  group_by(lunch) %>% 
+  filter(math.score>80) %>% 
+  count(lunch)
+
+writing = data %>% 
+  group_by(lunch) %>% 
+  filter(writing.score>80) %>% 
+  count(lunch)
+
+reading = data %>% 
+  group_by(lunch) %>% 
+  filter(reading.score>80) %>% 
+  count(lunch)
+
+total = data %>% 
+  group_by(lunch) %>% 
+  count(lunch)
+
+total$mathAPercent = math$n / total$n * 100
+total$readingAPercent = reading$n / total$n * 100
+total$writingAPercent = writing$n / total$n * 100
+
+total = subset(total, select = -c(n))
+
+melt(total, id.vars="lunch", variable.name = "GoodMarkPercent") %>% 
+  ggplot(aes(x=GoodMarkPercent, y=value, fill=lunch)) +
+  geom_bar(stat="identity", position = position_dodge())
+
+```
+
+
+Result
+In general, standard lunches seen more effective on the students.
+
+## Correlation of Scores
+
+```{r}
+library(corrplot)
+library(Hmisc)
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+    )
+}
+res2<-rcorr(as.matrix(data[,6:8]))
+flattenCorrMatrix(res2$r, res2$P)
+
+```
+
+# Conclusion
+There is highly correlation between scores. Thus, the students who takes low scores at one of area could take another low score and high scores take another high scores. 
+
+
+Being female, parents having a master degree and being a group E ethnicity is a advantage in education or maybe for carrier.
+
+
+
+
+
+# Machine learning
+
+```{r}
+library(superml)
+library(caTools)
+library(caret)
+library(quantreg)
+library(data.table)
+library(reshape2)
+```
+
+
+```{r}
+df = data
+```
+
+```{r}
+
+split = sample.split(df, SplitRatio = 0.9)
+train = subset(df, split=="TRUE")
+test = subset(df, split=="FALSE")
+head(train)
+head(test)
+```
+
+Train set size: 875
+Test set size: 125
+
+
+
+### Label Encoding
+
+```{r}
+
+data = read.csv("studentdata.csv")
+
+newdata <- tocategorical( data)
+newdata
+
+
+```
+
+
+```{r}
+genderlabel = LabelEncoder$new()
+train$gender = genderlabel$fit_transform(train$gender)
+
+racelabel = LabelEncoder$new()
+train$race.ethnicity = racelabel$fit_transform(train$race.ethnicity)
+
+parentallabel <- LabelEncoder$new()
+train$parental.level.of.education = parentallabel$fit_transform(train$parental.level.of.education)
+
+lunchlabel <- LabelEncoder$new()
+train$lunch = lunchlabel$fit_transform(train$lunch)
+
+testlabel <- LabelEncoder$new()
+train$test.preparation.course = testlabel$fit_transform(train$test.preparation.course)
+
+head(train)
+```
+
+
+
+Train test split:
+
+```{r}
+
+train_x = subset(train, select = c(gender, race.ethnicity, parental.level.of.education, lunch, test.preparation.course))
+train_y = subset(train, select = -c(gender, race.ethnicity, parental.level.of.education, lunch, test.preparation.course))
+
+
+test_x = subset(test, select = c(gender, race.ethnicity, parental.level.of.education, lunch, test.preparation.course))
+test_y = subset(test, select = -c(gender, race.ethnicity, parental.level.of.education, lunch, test.preparation.course))
+
+
+head(train_x)
+head(train_y)
+head(test_x)
+head(test_y)
+
+```
+
+
+```{r}
+
+test_x$gender = genderlabel$transform(test_x$gender)
+test_x$race.ethnicity = racelabel$transform(test_x$race.ethnicity)
+test_x$parental.level.of.education = parentallabel$transform(test_x$parental.level.of.education)
+test_x$lunch = lunchlabel$transform(test_x$lunch)
+test_x$test.preparation.course = testlabel$transform(test_x$test.preparation.course)
+
+head(test_x)
+```
+
+
+
+
+### Linear model between math score and all factors
+
+```{r}
+lm_model_math = lm(math.score ~ gender+race.ethnicity+parental.level.of.education+lunch+test.preparation.course, train)
+summary(lm_model_math)
+view(data)
+```
+
+
+```{r}
+lm_pred_math = predict(lm_model_math, test_x)
+lm_rmse_math  = sqrt(sum((lm_pred_math- test_y$math.score)^2)/125)
+lm_rmse_math
+```
+
+
+```{r}
+i = seq(1:length(test_y$math.score))
+lm_table = data.frame(i, lm_pred_math, test_y$math.score)
+head(lm_table)
+```
+
+```{r}
+ggplot(data=lm_table) + geom_point(aes(x=i,y=lm_pred_math, color = "blue")) + 
+  geom_point(aes(x=i,y=test_y.math.score, color = "red")) 
+```
+
+
+
+### Linear model between writing score and all factors
+
+```{r}
+lm_model_writing = lm(writing.score ~ gender+race.ethnicity+parental.level.of.education+lunch+test.preparation.course, train)
+summary(lm_model_writing)
+
+```
+
+
+```{r}
+lm_pred_writing = predict(lm_model_writing, test_x)
+lm_rmse_writing = sqrt(sum((lm_pred_writing- test_y$writing.score)^2)/125)
+lm_rmse_writing
+```
+
+
+### Linear model between reading score and all factors
+
+```{r}
+lm_model_reading = lm(reading.score ~ gender+race.ethnicity+parental.level.of.education+lunch+test.preparation.course, train)
+summary(lm_model_reading)
+
+```
+
+
+```{r}
+lm_pred_reading = predict(lm_model_reading, test_x)
+lm_rmse_reading = sqrt(sum((lm_pred_reading- test_y$reading.score)^2)/125)
+lm_rmse_reading
+```
+
+
+## Anova
+
+```{r}
+aov_model_math = aov(math.score ~ gender+race.ethnicity+parental.level.of.education+lunch+test.preparation.course, train)
+aov_pred_math = predict(aov_model_math, test_x)
+aov_rmse_math = sqrt(sum((aov_pred_math- test_y$math.score)^2)/125)
+aov_rmse_math
+```
+
+```{r}
+aov_model_writing = aov(writing.score ~ gender+race.ethnicity+parental.level.of.education+lunch+test.preparation.course, train)
+aov_pred_writing = predict(aov_model_writing, test_x)
+aov_rmse_writing = sqrt(sum((aov_pred_writing- test_y$writing.score)^2)/125)
+aov_rmse_writing
+```
+
+```{r}
+aov_model_reading = aov(reading.score ~ gender+race.ethnicity+parental.level.of.education+lunch+test.preparation.course, train)
+aov_pred_reading = predict(aov_model_reading, test_x)
+aov_rmse_reading = sqrt(sum((aov_pred_reading- test_y$reading.score)^2)/125)
+aov_rmse_reading
+```
+
+
+```{r}
+
+i = seq(1:length(test_y$math.score))
+aov_table = data.frame(i, aov_pred_math, test_y$math.score)
+
+ggplot(data=aov_table) + geom_point(aes(x=i,y=aov_pred_math, color = "blue")) + 
+  geom_point(aes(x=i,y=test_y.math.score, color = "red")) 
+
+```
+
+
+
+## Random forest regression
+
+```{r}
+library(caTools)
+library(randomForest)
+library(Metrics)
+```
+
+
+### Random forest on Math score
+
+```{r}
+
+
+set.seed(123)
+
+
+regressor = randomForest(x = train_x,
+                         y = train_y$math.score,
+                         ntree = 500)
+
+y_pred = predict(regressor, test_x)
+
+
+i = seq(1:length(test_y$math.score))
+regression_table = data.frame(i, y_pred, test_y$math.score)
+head(regression_table)
+
+
+```
+
+```{r}
+rf_rmse_math =  rmse(y_pred, test_y$math.score)
+rf_rmse_math
+```
+
+
+```{r}
+ggplot(data=regression_table) + geom_point(aes(x=i,y=y_pred, color = "blue")) + 
+  geom_point(aes(x=i,y=test_y.math.score, color = "red")) 
+
+```
+
+
+### Random forest on writing score
+
+```{r}
+
+regressor = randomForest(x = train_x,
+                         y = train_y$writing.score,
+                         ntree = 500)
+
+y_pred = predict(regressor, test_x)
+
+
+
+
+```
+
+Sum of squared error:
+```{r}
+rf_rmse_writing = rmse(y_pred, test_y$writing.score)
+rf_rmse_writing
+```
+
+
+
+
+### Random forest on reading score
+
+```{r}
+
+regressor = randomForest(x = train_x,
+                         y = train_y$reading.score,
+                         ntree = 500)
+
+y_pred = predict(regressor, test_x)
+
+
+
+```
+
+
+```{r}
+rf_rmse_reading = rmse(y_pred, test_y$reading.score)
+rf_rmse_reading
+```
+
+
+
+## Analysing the models
+
+```{r}
+name = c("Math RMSE", "Reading RMSE", "Writing RMSE")
+reg_rmse = c(lm_rmse_math, lm_rmse_reading, lm_rmse_writing)
+aov_rmse = c(aov_rmse_math, aov_rmse_reading, aov_rmse_writing)
+rf_rmse = c(rf_rmse_math, rf_rmse_reading, rf_rmse_writing)
+
+data.frame(name, reg_rmse, aov_rmse, rf_rmse)
+```
+
+
+
+
+
+
+
+
